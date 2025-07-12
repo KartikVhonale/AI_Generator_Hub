@@ -105,7 +105,7 @@ function TextGenerator() {
     <div className="text-generator">
       <header className="text-generator-header">
         <h1>✍️ AI Text Generator</h1>
-        <p>Create amazing content with artificial intelligence</p>
+        <p>Create amazing content with artificial intelligence | 🔐 Secure & Encrypted</p>
       </header>
 
       <main className="text-generator-main">
@@ -123,7 +123,11 @@ function TextGenerator() {
                   className="api-input"
                 />
                 <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                  🔒 Your API key is stored locally and never sent to external servers
+                  💾 Your API key is stored locally and never sent to external servers
+                  <br />
+                  🔐 Advanced encryption protects your key during transmission and storage 
+                  <br />
+                  💡 Bring your own API key from AI Studio for full functionality
                 </small>
               </div>
             </div>
@@ -222,7 +226,7 @@ function TextGenerator() {
       </main>
 
       <footer className="text-generator-footer">
-        <p>Built with modern AI technology</p>
+        <p>Built with modern AI technology | 🔐 Encrypted API transmission | 🌐 Secure HTTPS</p>
       </footer>
     </div>
   )

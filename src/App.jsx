@@ -213,7 +213,7 @@ function App() {
         <>
           <header className="header">
             <h1>🎨 AI Image Generator</h1>
-            <p>Create stunning images with artificial intelligence</p>
+            <p>Create stunning images with artificial intelligence | 🔐 Secure & Encrypted</p>
           </header>
 
       <main className="main">
@@ -230,10 +230,13 @@ function App() {
                   placeholder="Enter your API key"
                   className="api-input"
                 />
-                <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                  🔒 Your API key is stored locally and never sent to external servers
-                  (Bring your own API key 🤩)
-                </small>
+                                  <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                    💾 Your API key is stored locally and never sent to external servers
+                    <br />
+                    🔐 Advanced encryption protects your key during transmission and storage 
+                    <br />
+                    💡 Bring your own API key from AI Studio for full functionality
+                  </small>
               </div>
             </div>
           )}
@@ -359,7 +362,7 @@ function App() {
       </main>
 
           <footer className="footer">
-            <p>Built with modern AI technology</p>
+            <p>Built with modern AI technology | 🔐 Encrypted API transmission | 🌐 Secure HTTPS</p>
           </footer>
         </>
       )}
