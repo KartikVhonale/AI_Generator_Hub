@@ -155,7 +155,7 @@ function ImageEnhancer() {
     <div className="image-enhancer">
       <header className="image-enhancer-header">
         <h1>🔄 AI Image Enhancer</h1>
-        <p>Powered by Google Gemini - Enhance images with text prompts</p>
+        <p>Enhance your images with artificial intelligence</p>
       </header>
 
       <main className="image-enhancer-main">
@@ -169,7 +169,7 @@ function ImageEnhancer() {
                   type="password"
                   value={manualApiKey}
                   onChange={(e) => setManualApiKey(e.target.value)}
-                  placeholder="Enter your Gemini API key"
+                  placeholder="Enter your API key"
                   className="api-input"
                 />
                 <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
@@ -276,7 +276,7 @@ function ImageEnhancer() {
       </main>
 
       <footer className="image-enhancer-footer">
-        <p>Built with Google Gemini AI</p>
+        <p>Built with modern AI technology</p>
       </footer>
     </div>
   )

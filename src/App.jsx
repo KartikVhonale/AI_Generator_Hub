@@ -213,21 +213,21 @@ function App() {
         <>
           <header className="header">
             <h1>🎨 AI Image Generator</h1>
-            <p>Powered by Google Gemini - Generate images with AI</p>
+            <p>Create stunning images with artificial intelligence</p>
           </header>
 
       <main className="main">
         <div className="input-section">
           {!API_KEY && (
             <div className="api-key-section">
-              <div className="api-key-input">
+              <div className="api-key-input"> 
                 <label htmlFor="manualApiKey">Gemini API Key:</label>
                 <input
                   id="manualApiKey"
                   type="password"
                   value={manualApiKey}
                   onChange={(e) => setManualApiKey(e.target.value)}
-                  placeholder="Enter your Gemini API key"
+                  placeholder="Enter your API key"
                   className="api-input"
                 />
                 <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
@@ -359,7 +359,7 @@ function App() {
       </main>
 
           <footer className="footer">
-            <p>Built with Google Gemini AI</p>
+            <p>Built with modern AI technology</p>
           </footer>
         </>
       )}

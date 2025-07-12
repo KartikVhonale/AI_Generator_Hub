@@ -28,6 +28,16 @@ function Navigation({ currentPage, onPageChange }) {
             ✍️ Text Generator
           </button>
         </div>
+        
+        <div className="nav-actions">
+          <button
+            className="api-key-btn"
+            onClick={() => window.open('https://makersuite.google.com/app/apikey', '_blank')}
+            title="Get your API key from AI Studio"
+          >
+            🔑 Get API Key
+          </button>
+        </div>
       </div>
     </nav>
   )

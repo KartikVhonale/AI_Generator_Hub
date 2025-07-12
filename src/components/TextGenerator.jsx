@@ -105,7 +105,7 @@ function TextGenerator() {
     <div className="text-generator">
       <header className="text-generator-header">
         <h1>✍️ AI Text Generator</h1>
-        <p>Powered by Google Gemini</p>
+        <p>Create amazing content with artificial intelligence</p>
       </header>
 
       <main className="text-generator-main">
@@ -119,7 +119,7 @@ function TextGenerator() {
                   type="password"
                   value={manualApiKey}
                   onChange={(e) => setManualApiKey(e.target.value)}
-                  placeholder="Enter your Gemini API key"
+                  placeholder="Enter your API key"
                   className="api-input"
                 />
                 <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
@@ -222,7 +222,7 @@ function TextGenerator() {
       </main>
 
       <footer className="text-generator-footer">
-        <p>Built with Google Gemini AI</p>
+        <p>Built with modern AI technology</p>
       </footer>
     </div>
   )
