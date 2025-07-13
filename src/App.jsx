@@ -5,7 +5,7 @@ import { config, validateConfig, debugConfig, saveApiKey, clearStoredApiKey } fr
 import Navigation from './components/Navigation'
 import TextGenerator from './components/TextGenerator'
 import ImageEnhancer from './components/ImageEnhancer'
-import ImageContainer from './components/ImageContainer'
+import ImageContainer from './components/Ui/ImageContainer'
 
 function App() {
   const [prompt, setPrompt] = useState('')

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { config, saveApiKey, clearStoredApiKey } from '../config.js'
-import ImageContainer from './ImageContainer'
+import ImageContainer from './Ui/ImageContainer'
 import './ImageEnhancer.css'
 
 function ImageEnhancer() {
