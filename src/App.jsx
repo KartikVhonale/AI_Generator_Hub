@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import './App.css'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { config, validateConfig, debugConfig, saveApiKey, clearStoredApiKey } from './config.js'
@@ -6,8 +7,10 @@ import Navigation from './components/Navigation'
 import TextGenerator from './components/TextGenerator'
 import ImageEnhancer from './components/ImageEnhancer'
 import ImageContainer from './components/Ui/ImageContainer'
+import OpenInNewTab from './components/OpenInNewTab'
 
 function App() {
+  const location = useLocation()
   const [prompt, setPrompt] = useState('')
   const [generatedImage, setGeneratedImage] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -17,6 +20,9 @@ function App() {
   const [currentPage, setCurrentPage] = useState('image')
   const [imageType, setImageType] = useState('photorealistic')
   const [apiKeySaved, setApiKeySaved] = useState(false)
+
+  // Check if we're on the OpenInNewTab route
+  const isOpenInNewTabRoute = location.pathname === '/open-in-new-tab'
 
   // Access environment variables through config file
   const API_KEY = config.GEMINI_API_KEY
@@ -251,158 +257,163 @@ function App() {
   }
 
   return (
-    <div className="app">
-      <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
-      
-      {currentPage === 'text' ? (
-        <TextGenerator />
-      ) : currentPage === 'enhance' ? (
-        <ImageEnhancer />
-      ) : (
-        <>
-          <header className="header">
-            <h1>🎨 AI Image Generator</h1>
-            <p>Create stunning images with artificial intelligence | 🔐 Secure & Encrypted</p>
-          </header>
+    <Routes>
+      <Route path="/open-in-new-tab" element={<OpenInNewTab />} />
+      <Route path="/" element={
+        <div className="app">
+          <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
+          
+          {currentPage === 'text' ? (
+            <TextGenerator />
+          ) : currentPage === 'enhance' ? (
+            <ImageEnhancer />
+          ) : (
+            <>
+              <header className="header">
+                <h1>🎨 AI Image Generator</h1>
+                <p>Create stunning images with artificial intelligence | 🔐 Secure & Encrypted</p>
+              </header>
 
-      <main className="main">
-        <div className="input-section">
-          {!API_KEY && (
-            <div className="api-key-section">
-              <div className="api-key-input"> 
-                <label htmlFor="manualApiKey">Gemini API Key:</label>
-                <input
-                  id="manualApiKey"
-                  type="password"
-                  value={manualApiKey}
-                  onChange={(e) => setManualApiKey(e.target.value)}
-                  placeholder="Enter your API key"
-                  className="api-input"
-                />
-                <div className="api-key-actions">
-                  <button 
-                    onClick={handleApiKeySave}
-                    className="save-api-btn"
-                    disabled={!manualApiKey.trim()}
-                  >
-                    💾 Save API Key
-                  </button>
-                  {apiKeySaved && (
+          <main className="main">
+            <div className="input-section">
+              {!API_KEY && (
+                <div className="api-key-section">
+                  <div className="api-key-input"> 
+                    <label htmlFor="manualApiKey">Gemini API Key:</label>
+                    <input
+                      id="manualApiKey"
+                      type="password"
+                      value={manualApiKey}
+                      onChange={(e) => setManualApiKey(e.target.value)}
+                      placeholder="Enter your API key"
+                      className="api-input"
+                    />
+                    <div className="api-key-actions">
+                      <button 
+                        onClick={handleApiKeySave}
+                        className="save-api-btn"
+                        disabled={!manualApiKey.trim()}
+                      >
+                        💾 Save API Key
+                      </button>
+                      {apiKeySaved && (
+                        <button 
+                          onClick={handleApiKeyClear}
+                          className="clear-api-btn"
+                        >
+                          🗑️ Clear Saved Key
+                        </button>
+                      )}
+                    </div>
+                    <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                      💾 Your API key is stored locally and never sent to external servers
+                      <br />
+                      🔐 Advanced encryption protects your key during transmission and storage 
+                      <br />
+                      💡 Bring your own API key from AI Studio for full functionality
+                      {apiKeySaved && (
+                        <>
+                          <br />
+                          ✅ API key is saved and will be remembered across all pages
+                        </>
+                      )}
+                    </small>
+                  </div>
+                </div>
+              )}
+
+              {API_KEY && (
+                <div className="api-key-status">
+                  <div className="status-indicator">
+                    <span className="status-icon">✅</span>
+                    <span className="status-text">API Key Available</span>
                     <button 
                       onClick={handleApiKeyClear}
-                      className="clear-api-btn"
+                      className="clear-api-btn-small"
+                      title="Clear saved API key"
                     >
-                      🗑️ Clear Saved Key
+                      🗑️
                     </button>
-                  )}
+                  </div>
+                  <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                    Your API key is saved and available for all features. You can clear it anytime.
+                  </small>
                 </div>
-                <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                  💾 Your API key is stored locally and never sent to external servers
-                  <br />
-                  🔐 Advanced encryption protects your key during transmission and storage 
-                  <br />
-                  💡 Bring your own API key from AI Studio for full functionality
-                  {apiKeySaved && (
-                    <>
-                      <br />
-                      ✅ API key is saved and will be remembered across all pages
-                    </>
-                  )}
-                </small>
-              </div>
-            </div>
-          )}
+              )}
 
-          {API_KEY && (
-            <div className="api-key-status">
-              <div className="status-indicator">
-                <span className="status-icon">✅</span>
-                <span className="status-text">API Key Available</span>
-                <button 
-                  onClick={handleApiKeyClear}
-                  className="clear-api-btn-small"
-                  title="Clear saved API key"
+              <div className="image-type-selector">
+                <label htmlFor="imageType">Image Style:</label>
+                <select
+                  id="imageType"
+                  value={imageType}
+                  onChange={(e) => setImageType(e.target.value)}
+                  className="image-type-select"
                 >
-                  🗑️
-                </button>
+                  <option value="photorealistic">📸 Photorealistic</option>
+                  <option value="artistic">🎨 Artistic Painting</option>
+                  <option value="cartoon">🎭 Cartoon/Anime</option>
+                  <option value="fantasy">✨ Fantasy/Magical</option>
+                  <option value="minimalist">⚪ Minimalist</option>
+                  <option value="vintage">📷 Vintage/Retro</option>
+                </select>
               </div>
-              <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                Your API key is saved and available for all features. You can clear it anytime.
-              </small>
+
+              <div className="prompt-input">
+                <label htmlFor="prompt">Describe the image you want to generate:</label>
+                <textarea
+                  id="prompt"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={getPlaceholderText(imageType)}
+                  className="prompt-textarea"
+                  rows="5"
+                />
+              </div>
+
+              <button 
+                onClick={generateImage} 
+                disabled={isLoading || !prompt.trim() || (!API_KEY && !manualApiKey.trim())}
+                className="generate-btn"
+              >
+                {isLoading ? '🔄 Generating...' : '✨ Generate Image'}
+              </button>
             </div>
-          )}
 
-          <div className="image-type-selector">
-            <label htmlFor="imageType">Image Style:</label>
-            <select
-              id="imageType"
-              value={imageType}
-              onChange={(e) => setImageType(e.target.value)}
-              className="image-type-select"
-            >
-              <option value="photorealistic">📸 Photorealistic</option>
-              <option value="artistic">🎨 Artistic Painting</option>
-              <option value="cartoon">🎭 Cartoon/Anime</option>
-              <option value="fantasy">✨ Fantasy/Magical</option>
-              <option value="minimalist">⚪ Minimalist</option>
-              <option value="vintage">📷 Vintage/Retro</option>
-            </select>
-          </div>
+            {error && (
+              <div className="error-message">
+                {error.includes('✅') ? '' : '❌ '}{error}
+              </div>
+            )}
 
-          <div className="prompt-input">
-            <label htmlFor="prompt">Describe the image you want to generate:</label>
-            <textarea
-              id="prompt"
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={getPlaceholderText(imageType)}
-              className="prompt-textarea"
-              rows="5"
-            />
-          </div>
+            <div className="image-section">
+              {isLoading && (
+                <div className="loading">
+                  <div className="spinner"></div>
+                  <p>Creating your masterpiece...</p>
+                </div>
+              )}
 
-          <button 
-            onClick={generateImage} 
-            disabled={isLoading || !prompt.trim() || (!API_KEY && !manualApiKey.trim())}
-            className="generate-btn"
-          >
-            {isLoading ? '🔄 Generating...' : '✨ Generate Image'}
-          </button>
-        </div>
-
-        {error && (
-          <div className="error-message">
-            {error.includes('✅') ? '' : '❌ '}{error}
-          </div>
-        )}
-
-        <div className="image-section">
-          {isLoading && (
-            <div className="loading">
-              <div className="spinner"></div>
-              <p>Creating your masterpiece...</p>
+              {generatedImage && !isLoading && (
+                <ImageContainer 
+                  imageUrl={generatedImage}
+                  fileName="ai-generated-image.png"
+                  title="✨ Generated Image"
+                  description="Your AI-generated masterpiece is ready! You can download, copy the image, or open it in a new tab."
+                  onAction={handleImageAction}
+                />
+              )}
             </div>
-          )}
+          </main>
 
-          {generatedImage && !isLoading && (
-            <ImageContainer 
-              imageUrl={generatedImage}
-              fileName="ai-generated-image.png"
-              title="✨ Generated Image"
-              description="Your AI-generated masterpiece is ready! You can download, copy the image, or open it in a new tab."
-              onAction={handleImageAction}
-            />
+              <footer className="footer">
+                <p>Built with modern AI technology | 🔐 Encrypted API transmission | 🌐 Secure HTTPS</p>
+              </footer>
+            </>
           )}
         </div>
-      </main>
-
-          <footer className="footer">
-            <p>Built with modern AI technology | 🔐 Encrypted API transmission | 🌐 Secure HTTPS</p>
-          </footer>
-        </>
-      )}
-    </div>
+      } />
+    </Routes>
   )
 }
 

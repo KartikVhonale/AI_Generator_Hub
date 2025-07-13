@@ -93,7 +93,7 @@
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 785px) {
   .nav-container {
     flex-direction: column;
     text-align: center;
