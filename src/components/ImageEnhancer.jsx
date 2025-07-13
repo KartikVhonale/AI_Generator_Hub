@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { config } from '../config.js'
+import { config, saveApiKey, clearStoredApiKey } from '../config.js'
+import ImageContainer from './ImageContainer'
 import './ImageEnhancer.css'
 
 function ImageEnhancer() {
@@ -11,10 +12,60 @@ function ImageEnhancer() {
   const [error, setError] = useState('')
   const [manualApiKey, setManualApiKey] = useState('')
   const [imageName, setImageName] = useState('')
+  const [enhancementType, setEnhancementType] = useState('normal')
+  const [styleOption, setStyleOption] = useState('realistic')
+  const [apiKeySaved, setApiKeySaved] = useState(false)
   const fileInputRef = useRef(null)
 
   // Access environment variables through config file
   const API_KEY = config.GEMINI_API_KEY
+
+  // Check if API key is already saved on component mount
+  useEffect(() => {
+    if (API_KEY) {
+      setApiKeySaved(true)
+      setManualApiKey('') // Clear manual input if API key is available
+    }
+  }, [API_KEY])
+
+  const handleApiKeySave = () => {
+    if (manualApiKey.trim()) {
+      const success = saveApiKey(manualApiKey.trim())
+      if (success) {
+        setApiKeySaved(true)
+        setManualApiKey('')
+        setError('✅ API key saved successfully! You can now use all features.')
+        setTimeout(() => setError(''), 3000)
+        // Reload the page to update the config
+        window.location.reload()
+      } else {
+        setError('❌ Failed to save API key. Please try again.')
+      }
+    } else {
+      setError('❌ Please enter a valid API key.')
+    }
+  }
+
+  const handleApiKeyClear = () => {
+    const success = clearStoredApiKey()
+    if (success) {
+      setApiKeySaved(false)
+      setManualApiKey('')
+      setError('✅ API key cleared successfully!')
+      setTimeout(() => setError(''), 3000)
+      // Reload the page to update the config
+      window.location.reload()
+    } else {
+      setError('❌ Failed to clear API key. Please try again.')
+    }
+  }
+
+  const handleImageAction = async (action, result) => {
+    if (result && result.message) {
+      setError(result.message)
+      setTimeout(() => setError(''), result.message.includes('✅') ? 3000 : 4000)
+    }
+  }
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0]
@@ -39,13 +90,83 @@ function ImageEnhancer() {
     return dataUrl.split(',')[1]
   }
 
+  const getEnhancementPrompt = () => {
+    const basePrompt = prompt.trim()
+    
+    switch (enhancementType) {
+      case 'background-remove':
+        return `Remove the background from this image completely. 
+                Requirements:
+                - Remove all background elements
+                - Keep only the main subject/object
+                - Create a transparent or white background
+                - Maintain sharp edges and details of the subject
+                - Ensure the subject is clearly defined
+                ${basePrompt ? `Additional instructions: ${basePrompt}` : ''}`
+      
+      case 'style-transfer':
+        const stylePrompts = {
+          realistic: 'Apply a photorealistic style with natural lighting and colors',
+          artistic: 'Apply an artistic painting style with vibrant colors and brushstrokes',
+          cartoon: 'Apply a cartoon/anime style with clean lines and bright colors',
+          vintage: 'Apply a vintage/retro style with nostalgic colors and effects',
+          fantasy: 'Apply a fantasy style with magical elements and ethereal lighting',
+          minimalist: 'Apply a minimalist style with simple shapes and clean design'
+        }
+        return `Transform this image using ${styleOption} style. 
+                ${stylePrompts[styleOption]}
+                Requirements:
+                - Maintain the original composition
+                - Apply the selected style consistently
+                - Preserve important details
+                - Create a cohesive artistic result
+                ${basePrompt ? `Additional instructions: ${basePrompt}` : ''}`
+      
+      case 'upscale':
+        return `Upscale this image to ultra-high resolution with maximum detail. 
+                Requirements:
+                - Increase resolution to 8K quality
+                - Enhance fine details and textures
+                - Improve sharpness and clarity
+                - Maintain natural colors and lighting
+                - Remove any noise or artifacts
+                - Preserve the original composition
+                ${basePrompt ? `Additional instructions: ${basePrompt}` : ''}`
+      
+      case 'color-correct':
+        return `Color correct and enhance this image. 
+                Requirements:
+                - Improve color balance and saturation
+                - Enhance contrast and brightness
+                - Fix any color casts or issues
+                - Make colors more vibrant and natural
+                - Improve overall visual appeal
+                - Maintain realistic appearance
+                ${basePrompt ? `Additional instructions: ${basePrompt}` : ''}`
+      
+      case 'normal':
+      default:
+        return `Enhance this image with: ${basePrompt || 'general improvements'}. 
+                Requirements:
+                - 8K resolution quality with maximum detail
+                - Photorealistic rendering with perfect lighting
+                - Sharp focus and crisp details throughout
+                - Professional photography quality
+                - Rich colors and perfect contrast
+                - No blur, artifacts, or low-quality elements
+                - Studio-quality composition and framing
+                - Maintain the original composition while improving quality
+                Make this the highest quality enhanced image possible with incredible detail and realism.`
+    }
+  }
+
   const enhanceImage = async () => {
     if (!originalImage) {
       setError('Please upload an image first')
       return
     }
 
-    if (!prompt.trim()) {
+    if (enhancementType === 'normal' && !prompt.trim()) {
       setError('Please enter a prompt for enhancement')
       return
     }
@@ -77,17 +198,7 @@ function ImageEnhancer() {
       // Prepare content with both text and image
       const result = await model.generateContent([
         {
-          text: `Enhance this image with: ${prompt}. 
-                 Requirements for the enhanced version:
-                 - 8K resolution quality with maximum detail
-                 - Photorealistic rendering with perfect lighting
-                 - Sharp focus and crisp details throughout
-                 - Professional photography quality
-                 - Rich colors and perfect contrast
-                 - No blur, artifacts, or low-quality elements
-                 - Studio-quality composition and framing
-                 - Maintain the original composition while improving quality
-                 Make this the highest quality enhanced image possible with incredible detail and realism.`
+          text: getEnhancementPrompt()
         },
         {
           inlineData: {
@@ -137,17 +248,26 @@ function ImageEnhancer() {
     setPrompt('')
     setError('')
     setImageName('')
+    setEnhancementType('normal')
+    setStyleOption('realistic')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
   }
 
-  const downloadEnhancedImage = () => {
-    if (enhancedImage) {
-      const link = document.createElement('a')
-      link.href = enhancedImage
-      link.download = `enhanced-${imageName || 'image.png'}`
-      link.click()
+  const getPlaceholderText = () => {
+    switch (enhancementType) {
+      case 'background-remove':
+        return 'Remove background completely, keep only the main subject...'
+      case 'style-transfer':
+        return 'Apply artistic style transformation...'
+      case 'upscale':
+        return 'Upscale to 8K resolution, enhance details...'
+      case 'color-correct':
+        return 'Improve colors, contrast, and brightness...'
+      case 'normal':
+      default:
+        return 'Enhance to 8K quality, add perfect lighting, improve colors and details...'
     }
   }
 
@@ -172,14 +292,56 @@ function ImageEnhancer() {
                   placeholder="Enter your API key"
                   className="api-input"
                 />
+                <div className="api-key-actions">
+                  <button 
+                    onClick={handleApiKeySave}
+                    className="save-api-btn"
+                    disabled={!manualApiKey.trim()}
+                  >
+                    💾 Save API Key
+                  </button>
+                  {apiKeySaved && (
+                    <button 
+                      onClick={handleApiKeyClear}
+                      className="clear-api-btn"
+                    >
+                      🗑️ Clear Saved Key
+                    </button>
+                  )}
+                </div>
                 <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
                   💾 Your API key is stored locally and never sent to external servers
                   <br />
                   🔐 Advanced encryption protects your key during transmission and storage 
                   <br />
                   💡 Bring your own API key from AI Studio for full functionality
+                  {apiKeySaved && (
+                    <>
+                      <br />
+                      ✅ API key is saved and will be remembered across all pages
+                    </>
+                  )}
                 </small>
               </div>
+            </div>
+          )}
+
+          {API_KEY && (
+            <div className="api-key-status">
+              <div className="status-indicator">
+                <span className="status-icon">✅</span>
+                <span className="status-text">API Key Available</span>
+                <button 
+                  onClick={handleApiKeyClear}
+                  className="clear-api-btn-small"
+                  title="Clear saved API key"
+                >
+                  🗑️
+                </button>
+              </div>
+              <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                Your API key is saved and available for all features. You can clear it anytime.
+              </small>
             </div>
           )}
 
@@ -211,14 +373,51 @@ function ImageEnhancer() {
             </div>
           </div>
 
+          <div className="enhancement-type-selector">
+            <label htmlFor="enhancementType">Enhancement Type:</label>
+            <select
+              id="enhancementType"
+              value={enhancementType}
+              onChange={(e) => setEnhancementType(e.target.value)}
+              className="enhancement-type-select"
+            >
+              <option value="normal">✨ Normal Enhancement</option>
+              <option value="background-remove">🎭 Background Removal</option>
+              <option value="style-transfer">🎨 Style Transfer</option>
+              <option value="upscale">📈 Upscale Resolution</option>
+              <option value="color-correct">🎨 Color Correction</option>
+            </select>
+          </div>
+
+          {enhancementType === 'style-transfer' && (
+            <div className="style-option-selector">
+              <label htmlFor="styleOption">Style Option:</label>
+              <select
+                id="styleOption"
+                value={styleOption}
+                onChange={(e) => setStyleOption(e.target.value)}
+                className="style-option-select"
+              >
+                <option value="realistic">📸 Realistic</option>
+                <option value="artistic">🎨 Artistic</option>
+                <option value="cartoon">🎭 Cartoon</option>
+                <option value="vintage">📷 Vintage</option>
+                <option value="fantasy">✨ Fantasy</option>
+                <option value="minimalist">⚪ Minimalist</option>
+              </select>
+            </div>
+          )}
+
           <div className="prompt-input">
-            <label htmlFor="prompt">Enhancement Prompt:</label>
+            <label htmlFor="prompt">
+              {enhancementType === 'normal' ? 'Enhancement Prompt:' : 'Additional Instructions (Optional):'}
+            </label>
             <textarea
               id="prompt"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Enhance to 8K quality, add perfect lighting, improve colors and details..."
+              placeholder={getPlaceholderText()}
               className="prompt-textarea"
               rows="4"
             />
@@ -226,16 +425,19 @@ function ImageEnhancer() {
 
           <button 
             onClick={enhanceImage} 
-            disabled={isLoading || !prompt.trim() || !originalImage || (!API_KEY && !manualApiKey.trim())}
+            disabled={isLoading || (enhancementType === 'normal' && !prompt.trim()) || !originalImage || (!API_KEY && !manualApiKey.trim())}
             className="enhance-btn"
           >
-            {isLoading ? '🔄 Enhancing...' : '✨ Enhance Image'}
+            {isLoading ? '🔄 Enhancing...' : `✨ ${enhancementType === 'background-remove' ? 'Remove Background' : 
+              enhancementType === 'style-transfer' ? 'Apply Style' :
+              enhancementType === 'upscale' ? 'Upscale Image' :
+              enhancementType === 'color-correct' ? 'Color Correct' : 'Enhance Image'}`}
           </button>
         </div>
 
         {error && (
           <div className="error-message">
-            ❌ {error}
+            {error.includes('✅') ? '' : '❌ '}{error}
           </div>
         )}
 
@@ -252,7 +454,7 @@ function ImageEnhancer() {
               {originalImage && (
                 <div className="image-card">
                   <h3>📸 Original Image</h3>
-                  <div className="image-container">
+                  <div className="original-image-container">
                     <img src={originalImage} alt="Original" className="comparison-image" />
                   </div>
                 </div>
@@ -261,17 +463,15 @@ function ImageEnhancer() {
               {enhancedImage && (
                 <div className="image-card">
                   <h3>✨ Enhanced Image</h3>
-                  <div className="image-container">
-                    <img src={enhancedImage} alt="Enhanced" className="comparison-image" />
-                  </div>
-                  <div className="image-actions">
-                    <button onClick={downloadEnhancedImage} className="action-btn download-btn">
-                      💾 Download
-                    </button>
-                    <button onClick={clearAll} className="action-btn clear-btn">
-                      🗑️ Clear All
-                    </button>
-                  </div>
+                  <ImageContainer 
+                    imageUrl={enhancedImage}
+                    fileName={`enhanced-${imageName || 'image.png'}`}
+                    title="✨ Enhanced Image"
+                    description="Your AI-enhanced masterpiece is ready! You can download, copy the image, or open it in a new tab."
+                    onAction={handleImageAction}
+                    onClear={clearAll}
+                    showClear={true}
+                  />
                 </div>
               )}
             </div>

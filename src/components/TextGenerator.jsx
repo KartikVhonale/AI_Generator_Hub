@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { config } from '../config.js'
+import { config, saveApiKey, clearStoredApiKey } from '../config.js'
+import TextActions from './TextActions'
 import './TextGenerator.css'
+import Footer from './Ui/Footer'
 
 function TextGenerator() {
   const [prompt, setPrompt] = useState('')
@@ -11,9 +13,58 @@ function TextGenerator() {
   const [manualApiKey, setManualApiKey] = useState('')
   const [textType, setTextType] = useState('story')
   const [showApiKeyInput, setShowApiKeyInput] = useState(false)
+  const [apiKeySaved, setApiKeySaved] = useState(false)
 
   // Access environment variables through config file
   const API_KEY = config.GEMINI_API_KEY
+
+  // Check if API key is already saved on component mount
+  useEffect(() => {
+    if (API_KEY) {
+      setApiKeySaved(true)
+      setManualApiKey('') // Clear manual input if API key is available
+    }
+  }, [API_KEY])
+
+  const handleApiKeySave = () => {
+    if (manualApiKey.trim()) {
+      const success = saveApiKey(manualApiKey.trim())
+      if (success) {
+        setApiKeySaved(true)
+        setManualApiKey('')
+        setShowApiKeyInput(false)
+        setError('✅ API key saved successfully! You can now use all features.')
+        setTimeout(() => setError(''), 3000)
+        // Reload the page to update the config
+        window.location.reload()
+      } else {
+        setError('❌ Failed to save API key. Please try again.')
+      }
+    } else {
+      setError('❌ Please enter a valid API key.')
+    }
+  }
+
+  const handleApiKeyClear = () => {
+    const success = clearStoredApiKey()
+    if (success) {
+      setApiKeySaved(false)
+      setManualApiKey('')
+      setError('✅ API key cleared successfully!')
+      setTimeout(() => setError(''), 3000)
+      // Reload the page to update the config
+      window.location.reload()
+    } else {
+      setError('❌ Failed to clear API key. Please try again.')
+    }
+  }
+
+  const handleTextAction = async (action, result) => {
+    if (result && result.message) {
+      setError(result.message)
+      setTimeout(() => setError(''), result.message.includes('✅') ? 3000 : 4000)
+    }
+  }
 
   const generateText = async () => {
     if (!prompt.trim()) {
@@ -89,12 +140,6 @@ function TextGenerator() {
     }
   }
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedText)
-    setError('Text copied to clipboard!')
-    setTimeout(() => setError(''), 3000)
-  }
-
   const clearText = () => {
     setGeneratedText('')
     setPrompt('')
@@ -122,14 +167,56 @@ function TextGenerator() {
                   placeholder="Enter your API key"
                   className="api-input"
                 />
+                <div className="api-key-actions">
+                  <button 
+                    onClick={handleApiKeySave}
+                    className="save-api-btn"
+                    disabled={!manualApiKey.trim()}
+                  >
+                    💾 Save API Key
+                  </button>
+                  {apiKeySaved && (
+                    <button 
+                      onClick={handleApiKeyClear}
+                      className="clear-api-btn"
+                    >
+                      🗑️ Clear Saved Key
+                    </button>
+                  )}
+                </div>
                 <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
                   💾 Your API key is stored locally and never sent to external servers
                   <br />
                   🔐 Advanced encryption protects your key during transmission and storage 
                   <br />
                   💡 Bring your own API key from AI Studio for full functionality
+                  {apiKeySaved && (
+                    <>
+                      <br />
+                      ✅ API key is saved and will be remembered across all pages
+                    </>
+                  )}
                 </small>
               </div>
+            </div>
+          )}
+
+          {API_KEY && (
+            <div className="api-key-status">
+              <div className="status-indicator">
+                <span className="status-icon">✅</span>
+                <span className="status-text">API Key Available</span>
+                <button 
+                  onClick={handleApiKeyClear}
+                  className="clear-api-btn-small"
+                  title="Clear saved API key"
+                >
+                  🗑️
+                </button>
+              </div>
+              <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                Your API key is saved and available for all features. You can clear it anytime.
+              </small>
             </div>
           )}
 
@@ -173,7 +260,7 @@ function TextGenerator() {
 
         {error && (
           <div className="error-message">
-            {error.includes('copied') ? '✅ ' : '❌ '}{error}
+            {error.includes('✅') ? '' : '❌ '}{error}
           </div>
         )}
 
@@ -189,22 +276,6 @@ function TextGenerator() {
             <div className="text-viewer">
               <div className="text-viewer-header">
                 <h3>✨ Generated {textType.charAt(0).toUpperCase() + textType.slice(1)}</h3>
-                <div className="text-actions">
-                  <button 
-                    onClick={copyToClipboard}
-                    className="action-btn copy-btn"
-                    title="Copy Text"
-                  >
-                    📋 Copy
-                  </button>
-                  <button 
-                    onClick={clearText}
-                    className="action-btn clear-btn"
-                    title="Clear All"
-                  >
-                    🗑️ Clear
-                  </button>
-                </div>
               </div>
               
               <div className="text-container">
@@ -214,6 +285,13 @@ function TextGenerator() {
                   ))}
                 </div>
               </div>
+              
+              <TextActions 
+                text={generatedText}
+                onAction={handleTextAction}
+                onClear={clearText}
+                showClear={true}
+              />
               
               <div className="text-footer">
                 <p className="text-description">
@@ -225,9 +303,7 @@ function TextGenerator() {
         </div>
       </main>
 
-      <footer className="text-generator-footer">
-        <p>Built with modern AI technology | 🔐 Encrypted API transmission | 🌐 Secure HTTPS</p>
-      </footer>
+      <Footer/>
     </div>
   )
 }

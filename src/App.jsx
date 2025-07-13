@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { config, validateConfig, debugConfig } from './config.js'
+import { config, validateConfig, debugConfig, saveApiKey, clearStoredApiKey } from './config.js'
 import Navigation from './components/Navigation'
 import TextGenerator from './components/TextGenerator'
 import ImageEnhancer from './components/ImageEnhancer'
+import ImageContainer from './components/ImageContainer'
 
 function App() {
   const [prompt, setPrompt] = useState('')
@@ -15,9 +16,18 @@ function App() {
   const [showApiKeyInput, setShowApiKeyInput] = useState(false)
   const [currentPage, setCurrentPage] = useState('image')
   const [imageType, setImageType] = useState('photorealistic')
+  const [apiKeySaved, setApiKeySaved] = useState(false)
 
   // Access environment variables through config file
   const API_KEY = config.GEMINI_API_KEY
+  
+  // Check if API key is already saved on component mount
+  useEffect(() => {
+    if (API_KEY) {
+      setApiKeySaved(true)
+      setManualApiKey('') // Clear manual input if API key is available
+    }
+  }, [API_KEY])
   
   // Validate and debug configuration
   validateConfig()
@@ -30,6 +40,47 @@ function App() {
   console.log('config.GEMINI_API_KEY:', config.GEMINI_API_KEY)
   console.log('API_KEY constant:', API_KEY)
   console.log('================================')
+
+  const handleApiKeySave = () => {
+    if (manualApiKey.trim()) {
+      const success = saveApiKey(manualApiKey.trim())
+      if (success) {
+        setApiKeySaved(true)
+        setManualApiKey('')
+        setShowApiKeyInput(false)
+        setError('✅ API key saved successfully! You can now use all features.')
+        setTimeout(() => setError(''), 3000)
+        // Reload the page to update the config
+        window.location.reload()
+      } else {
+        setError('❌ Failed to save API key. Please try again.')
+      }
+    } else {
+      setError('❌ Please enter a valid API key.')
+    }
+  }
+
+  const handleApiKeyClear = () => {
+    const success = clearStoredApiKey()
+    if (success) {
+      setApiKeySaved(false)
+      setManualApiKey('')
+      setError('✅ API key cleared successfully!')
+      setTimeout(() => setError(''), 3000)
+      // Reload the page to update the config
+      window.location.reload()
+    } else {
+      setError('❌ Failed to clear API key. Please try again.')
+    }
+  }
+
+  const handleImageAction = async (action, result) => {
+    if (result && result.message) {
+      setError(result.message)
+      setTimeout(() => setError(''), result.message.includes('✅') ? 3000 : 4000)
+    }
+  }
+
   const generateImage = async () => {
     if (!prompt.trim()) {
       setError('Please enter a prompt')
@@ -199,8 +250,6 @@ function App() {
     }
   }
 
-
-
   return (
     <div className="app">
       <Navigation currentPage={currentPage} onPageChange={setCurrentPage} />
@@ -230,14 +279,56 @@ function App() {
                   placeholder="Enter your API key"
                   className="api-input"
                 />
-                                  <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
-                    💾 Your API key is stored locally and never sent to external servers
-                    <br />
-                    🔐 Advanced encryption protects your key during transmission and storage 
-                    <br />
-                    💡 Bring your own API key from AI Studio for full functionality
-                  </small>
+                <div className="api-key-actions">
+                  <button 
+                    onClick={handleApiKeySave}
+                    className="save-api-btn"
+                    disabled={!manualApiKey.trim()}
+                  >
+                    💾 Save API Key
+                  </button>
+                  {apiKeySaved && (
+                    <button 
+                      onClick={handleApiKeyClear}
+                      className="clear-api-btn"
+                    >
+                      🗑️ Clear Saved Key
+                    </button>
+                  )}
+                </div>
+                <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                  💾 Your API key is stored locally and never sent to external servers
+                  <br />
+                  🔐 Advanced encryption protects your key during transmission and storage 
+                  <br />
+                  💡 Bring your own API key from AI Studio for full functionality
+                  {apiKeySaved && (
+                    <>
+                      <br />
+                      ✅ API key is saved and will be remembered across all pages
+                    </>
+                  )}
+                </small>
               </div>
+            </div>
+          )}
+
+          {API_KEY && (
+            <div className="api-key-status">
+              <div className="status-indicator">
+                <span className="status-icon">✅</span>
+                <span className="status-text">API Key Available</span>
+                <button 
+                  onClick={handleApiKeyClear}
+                  className="clear-api-btn-small"
+                  title="Clear saved API key"
+                >
+                  🗑️
+                </button>
+              </div>
+              <small style={{ color: '#666', fontSize: '0.8rem', marginTop: '0.25rem', display: 'block' }}>
+                Your API key is saved and available for all features. You can clear it anytime.
+              </small>
             </div>
           )}
 
@@ -282,7 +373,7 @@ function App() {
 
         {error && (
           <div className="error-message">
-            ❌ {error}
+            {error.includes('✅') ? '' : '❌ '}{error}
           </div>
         )}
 
@@ -295,68 +386,13 @@ function App() {
           )}
 
           {generatedImage && !isLoading && (
-            <div className="image-viewer">
-              <div className="image-viewer-header">
-                <h3>✨ Generated Image</h3>
-                <div className="image-actions">
-                  <button 
-                    onClick={() => {
-                      const link = document.createElement('a')
-                      link.href = generatedImage
-                      link.download = 'ai-generated-image.png'
-                      link.click()
-                    }}
-                    className="action-btn download-btn"
-                    title="Download Image"
-                  >
-                    💾 Download
-                  </button>
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(generatedImage)
-                      setError('Image URL copied to clipboard!')
-                      setTimeout(() => setError(''), 3000)
-                    }}
-                    className="action-btn copy-btn"
-                    title="Copy Image URL"
-                  >
-                    📋 Copy URL
-                  </button>
-                  <button 
-                    onClick={() => {
-                      const newWindow = window.open(generatedImage, '_blank')
-                      if (newWindow) newWindow.focus()
-                    }}
-                    className="action-btn open-btn"
-                    title="Open in New Tab"
-                  >
-                    🔗 Open
-                  </button>
-                </div>
-              </div>
-              
-              <div className="image-container">
-                <img 
-                  src={generatedImage} 
-                  alt="Generated by AI" 
-                  className="generated-image"
-                  onLoad={() => console.log('Image loaded successfully')}
-                  onError={() => setError('Failed to load image. Please try again.')}
-                />
-                <div className="image-overlay">
-                  <div className="image-info">
-                    <span className="image-size">Generated with AI</span>
-                    <span className="image-type">Ultra HD 8K Quality</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="image-footer">
-                <p className="image-description">
-                  Your AI-generated masterpiece is ready! You can download, copy the URL, or open it in a new tab.
-                </p>
-              </div>
-            </div>
+            <ImageContainer 
+              imageUrl={generatedImage}
+              fileName="ai-generated-image.png"
+              title="✨ Generated Image"
+              description="Your AI-generated masterpiece is ready! You can download, copy the image, or open it in a new tab."
+              onAction={handleImageAction}
+            />
           )}
         </div>
       </main>
