@@ -18,7 +18,7 @@ function App() {
   const [manualApiKey, setManualApiKey] = useState('')
   const [showApiKeyInput, setShowApiKeyInput] = useState(false)
   const [currentPage, setCurrentPage] = useState('image')
-  const [imageType, setImageType] = useState('photorealistic')
+  const [imageType, setImageType] = useState('normal')
   const [apiKeySaved, setApiKeySaved] = useState(false)
 
   // Check if we're on the OpenInNewTab route
@@ -118,6 +118,16 @@ function App() {
       // Get the style prompt based on selected image type
       const getStylePrompt = (type) => {
         switch (type) {
+          case 'normal':
+            return `Create an extremely high-quality, ultra-detailed image of: ${prompt}. 
+                    Requirements:
+                    - 8K resolution quality with maximum detail
+                    - Professional photography quality
+                    // - Sharp focus and crisp details throughout
+                    // - Rich colors and perfect contrast
+                    // - No blur, artifacts, or low-quality elements
+                    // - Studio-quality composition and framing
+                    Make this the highest quality image possible with incredible detail and realism.`
           case 'photorealistic':
             return `Create an extremely high-quality, ultra-detailed photorealistic image of: ${prompt}. 
                     Requirements:
@@ -135,39 +145,42 @@ function App() {
                     Requirements:
                     - 8K resolution quality with maximum detail
                     - High-quality artistic rendering
-                    - Rich, vibrant colors and textures
-                    - Expressive brushwork and artistic style
-                    - Creative composition and lighting
-                    - Professional artwork quality
-                    Make this a stunning piece of digital art.`
+                    - Vibrant colors and artistic style
+                    - Creative composition and brushwork
+                    - Professional artistic quality
+                    - Rich textures and artistic details
+                    Make this a beautiful artistic masterpiece.`
           case 'cartoon':
-            return `Create a cute and colorful cartoon illustration of: ${prompt}. 
-                    Style: Modern cartoon/anime style with clean lines and bright colors.
+            return `Create a cute cartoon/anime style image of: ${prompt}. 
+                    Style: Cartoon/anime with clean lines, bright colors, and cute characters.
                     Requirements:
                     - 8K resolution quality with maximum detail
-                    - Clean, smooth cartoon rendering
-                    - Bright, cheerful colors
-                    - Simple but expressive design
+                    - Clean smooth cartoon/anime style
+                    - cheerful colors
+                    - Bright, vibrant colors
+                    - Cute and appealing characters
                     - Professional animation quality
                     - Cute and appealing style
-                    Make this a delightful cartoon image.`
+                    - Smooth lines and perfect coloring
+                    Make this an adorable cartoon/anime image.`
           case 'fantasy':
-            return `Create a magical fantasy artwork of: ${prompt}. 
-                    Style: Fantasy art with magical elements, ethereal lighting, and mystical atmosphere.
+            return `Create a magical fantasy image of: ${prompt}. 
+                    Style: Fantasy with magical elements, glowing effects, and mystical atmosphere.
                     Requirements:
                     - 8K resolution quality with maximum detail
-                    - Magical and mystical atmosphere
-                    - Ethereal lighting and glowing effects
-                    - Fantasy elements and magical details
-                    - Rich, otherworldly colors
+                    - Magical fantasy atmosphere
+                    - Glowing effects and magical elements
+                    - Mystical and ethereal quality
                     - Professional fantasy art quality
-                    Make this a captivating fantasy scene.`
+                    - Rich magical details and effects
+                    Make this a stunning fantasy masterpiece.`
           case 'minimalist':
-            return `Create a clean minimalist design of: ${prompt}. 
-                    Style: Minimalist art with simple shapes, clean lines, and subtle colors.
+            return `Create a clean minimalist image of: ${prompt}. 
+                    Style: Minimalist with simple shapes, clean lines, and subtle colors.
                     Requirements:
                     - 8K resolution quality with maximum detail
-                    - Clean, simple design
+                    - Clean minimalist design
+                    - Simple shapes and geometric forms
                     - Minimal color palette
                     - Geometric shapes and clean lines
                     - Subtle, elegant composition
@@ -239,6 +252,8 @@ function App() {
   // Get placeholder text based on selected image type
   const getPlaceholderText = (type) => {
     switch (type) {
+      case 'normal':
+        return 'Describe exactly what you want to see in your image... (e.g., a cat sitting on a windowsill, a mountain landscape at sunset, etc.)'
       case 'photorealistic':
         return 'A stunning 8K photorealistic landscape with perfect lighting and incredible detail...'
       case 'artistic':
@@ -252,7 +267,7 @@ function App() {
       case 'vintage':
         return 'A nostalgic vintage scene with retro colors, classic composition, and timeless appeal...'
       default:
-        return 'A stunning 8K photorealistic landscape with perfect lighting and incredible detail...'
+        return 'Describe exactly what you want to see in your image... (e.g., a cat sitting on a windowsill, a mountain landscape at sunset, etc.)'
     }
   }
 
@@ -349,6 +364,7 @@ function App() {
                   onChange={(e) => setImageType(e.target.value)}
                   className="image-type-select"
                 >
+                  <option value="normal">🖼️ Normal</option>
                   <option value="photorealistic">📸 Photorealistic</option>
                   <option value="artistic">🎨 Artistic Painting</option>
                   <option value="cartoon">🎭 Cartoon/Anime</option>
@@ -356,10 +372,24 @@ function App() {
                   <option value="minimalist">⚪ Minimalist</option>
                   <option value="vintage">📷 Vintage/Retro</option>
                 </select>
+                {imageType === 'normal' && (
+                  <small style={{ 
+                    color: '#666', 
+                    fontSize: '0.85rem', 
+                    marginTop: '0.5rem', 
+                    display: 'block',
+                    fontStyle: 'italic'
+                  }}>
+                    💡 Normal mode lets you describe exactly what you want without predefined style suggestions. 
+                    Be specific and detailed for best results!
+                  </small>
+                )}
               </div>
 
               <div className="prompt-input">
-                <label htmlFor="prompt">Describe the image you want to generate:</label>
+                <label htmlFor="prompt">
+                  {imageType === 'normal' ? 'Describe your image:' : 'Describe the image you want to generate:'}
+                </label>
                 <textarea
                   id="prompt"
                   value={prompt}
