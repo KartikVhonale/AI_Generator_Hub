@@ -9,6 +9,7 @@ import ImageEnhancer from './components/ImageEnhancer'
 import ImageContainer from './components/Ui/ImageContainer'
 import OpenInNewTab from './components/OpenInNewTab'
 import Footer from './components/Ui/Footer'
+import { useApiKey } from './hooks/useApiKey';
 
 function App() {
   const location = useLocation()
@@ -22,63 +23,44 @@ function App() {
   const [imageType, setImageType] = useState('normal')
   const [apiKeySaved, setApiKeySaved] = useState(false)
 
+  // Use the custom hook for API key management
+  const [apiKey, saveApiKey, clearApiKey] = useApiKey();
+
   // Check if we're on the OpenInNewTab route
   const isOpenInNewTabRoute = location.pathname === '/open-in-new-tab'
 
-  // Access environment variables through config file
-  const API_KEY = config.GEMINI_API_KEY
-  
   // Check if API key is already saved on component mount
   useEffect(() => {
-    if (API_KEY) {
+    if (apiKey) {
       setApiKeySaved(true)
       setManualApiKey('') // Clear manual input if API key is available
+    } else {
+      setApiKeySaved(false)
     }
-  }, [API_KEY])
+  }, [apiKey])
   
-  // Validate and debug configuration
-  validateConfig()
-  debugConfig()
-  
-  // Additional debugging to see exactly what's happening
-  console.log('=== ENVIRONMENT VARIABLE DEBUG ===')
-  console.log('import.meta.env:', import.meta.env)
-  console.log('import.meta.env.VITE_GEMINI_API_KEY:', import.meta.env.VITE_GEMINI_API_KEY)
-  console.log('config.GEMINI_API_KEY:', config.GEMINI_API_KEY)
-  console.log('API_KEY constant:', API_KEY)
-  console.log('================================')
+  // Remove static config usage for GEMINI_API_KEY
+  // Remove validateConfig and debugConfig if not needed
 
   const handleApiKeySave = () => {
     if (manualApiKey.trim()) {
-      const success = saveApiKey(manualApiKey.trim())
-      if (success) {
-        setApiKeySaved(true)
-        setManualApiKey('')
-        setShowApiKeyInput(false)
-        setError('✅ API key saved successfully! You can now use all features.')
-        setTimeout(() => setError(''), 3000)
-        // Reload the page to update the config
-        window.location.reload()
-      } else {
-        setError('❌ Failed to save API key. Please try again.')
-      }
+      saveApiKey(manualApiKey.trim())
+      setApiKeySaved(true)
+      setManualApiKey('')
+      setShowApiKeyInput(false)
+      setError('✅ API key saved successfully! You can now use all features.')
+      setTimeout(() => setError(''), 3000)
     } else {
       setError('❌ Please enter a valid API key.')
     }
   }
 
   const handleApiKeyClear = () => {
-    const success = clearStoredApiKey()
-    if (success) {
-      setApiKeySaved(false)
-      setManualApiKey('')
-      setError('✅ API key cleared successfully!')
-      setTimeout(() => setError(''), 3000)
-      // Reload the page to update the config
-      window.location.reload()
-    } else {
-      setError('❌ Failed to clear API key. Please try again.')
-    }
+    clearApiKey()
+    setApiKeySaved(false)
+    setManualApiKey('')
+    setError('✅ API key cleared successfully!')
+    setTimeout(() => setError(''), 3000)
   }
 
   const handleImageAction = async (action, result) => {
@@ -94,7 +76,7 @@ function App() {
       return
     }
 
-    const currentApiKey = API_KEY || manualApiKey.trim()
+    const currentApiKey = apiKey || manualApiKey.trim()
     
     if (!currentApiKey) {
       setError('API key not found. Please set it in the .env file or enter it manually.')
@@ -292,7 +274,7 @@ function App() {
 
           <main className="main">
             <div className="input-section">
-              {!API_KEY && (
+              {!apiKey && (
                 <div className="api-key-section">
                   <div className="api-key-input"> 
                     <label htmlFor="manualApiKey">Gemini API Key:</label>
@@ -338,7 +320,7 @@ function App() {
                 </div>
               )}
 
-              {API_KEY && (
+              {apiKey && (
                 <div className="api-key-status">
                   <div className="status-indicator">
                     <span className="status-icon">✅</span>
@@ -404,7 +386,7 @@ function App() {
 
               <button 
                 onClick={generateImage} 
-                disabled={isLoading || !prompt.trim() || (!API_KEY && !manualApiKey.trim())}
+                disabled={isLoading || !prompt.trim() || (!apiKey && !manualApiKey.trim())}
                 className="generate-btn"
               >
                 {isLoading ? '🔄 Generating...' : '✨ Generate Image'}

@@ -4,6 +4,7 @@ import { config, saveApiKey, clearStoredApiKey } from '../config.js'
 import TextActions from './TextActions'
 import './TextGenerator.css'
 import Footer from './Ui/Footer'
+import { useApiKey } from '../hooks/useApiKey';
 
 function TextGenerator() {
   const [prompt, setPrompt] = useState('')
@@ -14,49 +15,37 @@ function TextGenerator() {
   const [textType, setTextType] = useState('story')
   const [showApiKeyInput, setShowApiKeyInput] = useState(false)
   const [apiKeySaved, setApiKeySaved] = useState(false)
-
-  // Access environment variables through config file
-  const API_KEY = config.GEMINI_API_KEY
+  const [apiKey, saveApiKey, clearApiKey] = useApiKey();
 
   // Check if API key is already saved on component mount
   useEffect(() => {
-    if (API_KEY) {
+    if (apiKey) {
       setApiKeySaved(true)
       setManualApiKey('') // Clear manual input if API key is available
+    } else {
+      setApiKeySaved(false)
     }
-  }, [API_KEY])
+  }, [apiKey])
 
   const handleApiKeySave = () => {
     if (manualApiKey.trim()) {
-      const success = saveApiKey(manualApiKey.trim())
-      if (success) {
-        setApiKeySaved(true)
-        setManualApiKey('')
-        setShowApiKeyInput(false)
-        setError('✅ API key saved successfully! You can now use all features.')
-        setTimeout(() => setError(''), 3000)
-        // Reload the page to update the config
-        window.location.reload()
-      } else {
-        setError('❌ Failed to save API key. Please try again.')
-      }
+      saveApiKey(manualApiKey.trim())
+      setApiKeySaved(true)
+      setManualApiKey('')
+      setShowApiKeyInput(false)
+      setError('✅ API key saved successfully! You can now use all features.')
+      setTimeout(() => setError(''), 3000)
     } else {
       setError('❌ Please enter a valid API key.')
     }
   }
 
   const handleApiKeyClear = () => {
-    const success = clearStoredApiKey()
-    if (success) {
-      setApiKeySaved(false)
-      setManualApiKey('')
-      setError('✅ API key cleared successfully!')
-      setTimeout(() => setError(''), 3000)
-      // Reload the page to update the config
-      window.location.reload()
-    } else {
-      setError('❌ Failed to clear API key. Please try again.')
-    }
+    clearApiKey()
+    setApiKeySaved(false)
+    setManualApiKey('')
+    setError('✅ API key cleared successfully!')
+    setTimeout(() => setError(''), 3000)
   }
 
   const handleTextAction = async (action, result) => {
@@ -72,7 +61,7 @@ function TextGenerator() {
       return
     }
 
-    const currentApiKey = API_KEY || manualApiKey.trim()
+    const currentApiKey = apiKey || manualApiKey.trim()
     
     if (!currentApiKey) {
       setError('API key not found. Please set it in the .env file or enter it manually.')
@@ -155,7 +144,7 @@ function TextGenerator() {
 
       <main className="text-generator-main">
         <div className="input-section">
-          {!API_KEY && (
+          {!apiKey && (
             <div className="api-key-section">
               <div className="api-key-input">
                 <label htmlFor="manualApiKey">Gemini API Key:</label>
@@ -201,7 +190,7 @@ function TextGenerator() {
             </div>
           )}
 
-          {API_KEY && (
+          {apiKey && (
             <div className="api-key-status">
               <div className="status-indicator">
                 <span className="status-icon">✅</span>
@@ -251,7 +240,7 @@ function TextGenerator() {
 
           <button 
             onClick={generateText} 
-            disabled={isLoading || !prompt.trim() || (!API_KEY && !manualApiKey.trim())}
+            disabled={isLoading || !prompt.trim() || (!apiKey && !manualApiKey.trim())}
             className="generate-btn"
           >
             {isLoading ? '🔄 Generating...' : '✨ Generate Text'}

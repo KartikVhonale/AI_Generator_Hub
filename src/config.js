@@ -44,7 +44,7 @@ export const clearStoredApiKey = () => {
 }
 
 export const config = {
-  GEMINI_API_KEY: import.meta.env.VITE_GEMINI_API_KEY || getStoredApiKey(),
+  GEMINI_API_KEY: getStoredApiKey() || import.meta.env.VITE_GEMINI_API_KEY,
   // Add other environment variables here as needed
   // EXAMPLE_API_URL: import.meta.env.VITE_API_URL,
 }

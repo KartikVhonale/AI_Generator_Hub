@@ -1,5 +1,17 @@
-import { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import './ImageContainer.css'
+
+// Utility: throttle function
+function throttle(fn, limit) {
+  let inThrottle;
+  return function(...args) {
+    if (!inThrottle) {
+      fn.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+}
 
 function ImageContainer({ 
   imageUrl, 
@@ -551,4 +563,4 @@ function ImageContainer({
   )
 }
 
-export default ImageContainer 
+export default React.memo(ImageContainer); 

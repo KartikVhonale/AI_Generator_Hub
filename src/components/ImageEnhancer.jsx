@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { GoogleGenerativeAI } from '@google/generative-ai'
-import { config, saveApiKey, clearStoredApiKey } from '../config.js'
+import { useApiKey } from '../hooks/useApiKey';
 import ImageContainer from './Ui/ImageContainer'
 import './ImageEnhancer.css'
 import Footer from './Ui/Footer'
@@ -18,48 +18,35 @@ function ImageEnhancer() {
   const [apiKeySaved, setApiKeySaved] = useState(false)
   const fileInputRef = useRef(null)
 
-  // Access environment variables through config file
-  const API_KEY = config.GEMINI_API_KEY
+  const [apiKey, saveApiKey, clearApiKey] = useApiKey();
 
-  // Check if API key is already saved on component mount
   useEffect(() => {
-    if (API_KEY) {
-      setApiKeySaved(true)
-      setManualApiKey('') // Clear manual input if API key is available
+    if (apiKey) {
+      setApiKeySaved(true);
+      setManualApiKey('');
+    } else {
+      setApiKeySaved(false);
     }
-  }, [API_KEY])
+  }, [apiKey]);
 
   const handleApiKeySave = () => {
     if (manualApiKey.trim()) {
-      const success = saveApiKey(manualApiKey.trim())
-      if (success) {
-        setApiKeySaved(true)
-        setManualApiKey('')
-        setError('✅ API key saved successfully! You can now use all features.')
-        setTimeout(() => setError(''), 3000)
-        // Reload the page to update the config
-        window.location.reload()
-      } else {
-        setError('❌ Failed to save API key. Please try again.')
-      }
+      saveApiKey(manualApiKey.trim());
+      setApiKeySaved(true);
+      setManualApiKey('');
+      setError('✅ API key saved successfully! You can now use all features.');
+      setTimeout(() => setError(''), 3000);
     } else {
-      setError('❌ Please enter a valid API key.')
+      setError('❌ Please enter a valid API key.');
     }
-  }
-
+  };
   const handleApiKeyClear = () => {
-    const success = clearStoredApiKey()
-    if (success) {
-      setApiKeySaved(false)
-      setManualApiKey('')
-      setError('✅ API key cleared successfully!')
-      setTimeout(() => setError(''), 3000)
-      // Reload the page to update the config
-      window.location.reload()
-    } else {
-      setError('❌ Failed to clear API key. Please try again.')
-    }
-  }
+    clearApiKey();
+    setApiKeySaved(false);
+    setManualApiKey('');
+    setError('✅ API key cleared successfully!');
+    setTimeout(() => setError(''), 3000);
+  };
 
   const handleImageAction = async (action, result) => {
     if (result && result.message) {
@@ -172,7 +159,7 @@ function ImageEnhancer() {
       return
     }
 
-    const currentApiKey = API_KEY || manualApiKey.trim()
+    const currentApiKey = apiKey || manualApiKey.trim()
     
     if (!currentApiKey) {
       setError('API key not found. Please set it in the .env file or enter it manually.')
@@ -281,7 +268,7 @@ function ImageEnhancer() {
 
       <main className="image-enhancer-main">
         <div className="input-section">
-          {!API_KEY && (
+          {!apiKey && (
             <div className="api-key-section">
               <div className="api-key-input">
                 <label htmlFor="manualApiKey">Gemini API Key:</label>
@@ -327,7 +314,7 @@ function ImageEnhancer() {
             </div>
           )}
 
-          {API_KEY && (
+          {apiKey && (
             <div className="api-key-status">
               <div className="status-indicator">
                 <span className="status-icon">✅</span>
@@ -426,7 +413,7 @@ function ImageEnhancer() {
 
           <button 
             onClick={enhanceImage} 
-            disabled={isLoading || (enhancementType === 'normal' && !prompt.trim()) || !originalImage || (!API_KEY && !manualApiKey.trim())}
+            disabled={isLoading || (enhancementType === 'normal' && !prompt.trim()) || !originalImage || (!apiKey && !manualApiKey.trim())}
             className="enhance-btn"
           >
             {isLoading ? '🔄 Enhancing...' : `✨ ${enhancementType === 'background-remove' ? 'Remove Background' : 
