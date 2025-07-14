@@ -4,6 +4,7 @@ import { useApiKey } from '../hooks/useApiKey';
 import ImageContainer from './Ui/ImageContainer'
 import './ImageEnhancer.css'
 import Footer from './Ui/Footer'
+import Header from './Ui/Header.jsx';
 
 function ImageEnhancer() {
   const [originalImage, setOriginalImage] = useState(null)
@@ -261,10 +262,7 @@ function ImageEnhancer() {
 
   return (
     <div className="image-enhancer">
-      <header className="image-enhancer-header">
-        <h1>🔄 AI Image Enhancer</h1>
-        <p>Enhance your images with artificial intelligence | 🔐 Secure & Encrypted</p>
-      </header>
+      <Header title="🔄 AI Image Enhancer" subtitle="Upload and enhance your images with AI magic!" />
 
       <main className="image-enhancer-main">
         <div className="input-section">

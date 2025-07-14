@@ -10,6 +10,7 @@ import ImageContainer from './components/Ui/ImageContainer'
 import OpenInNewTab from './components/OpenInNewTab'
 import Footer from './components/Ui/Footer'
 import { useApiKey } from './hooks/useApiKey';
+import Header from './components/Ui/Header.jsx';
 
 function App() {
   const location = useLocation()
@@ -267,10 +268,7 @@ function App() {
             <ImageEnhancer />
           ) : (
             <>
-              <header className="header">
-                <h1>🎨 AI Image Generator</h1>
-                <p>Create stunning images with artificial intelligence | 🔐 Secure & Encrypted</p>
-              </header>
+              <Header />
 
           <main className="main">
             <div className="input-section">

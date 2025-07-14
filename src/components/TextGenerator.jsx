@@ -5,6 +5,7 @@ import TextActions from './TextActions'
 import './TextGenerator.css'
 import Footer from './Ui/Footer'
 import { useApiKey } from '../hooks/useApiKey';
+import Header from './Ui/Header.jsx';
 
 function TextGenerator() {
   const [prompt, setPrompt] = useState('')
@@ -17,11 +18,11 @@ function TextGenerator() {
   const [apiKeySaved, setApiKeySaved] = useState(false)
   const [apiKey, saveApiKey, clearApiKey] = useApiKey();
 
-  // Check if API key is already saved on component mount
+  
   useEffect(() => {
     if (apiKey) {
       setApiKeySaved(true)
-      setManualApiKey('') // Clear manual input if API key is available
+      setManualApiKey('') 
     } else {
       setApiKeySaved(false)
     }
@@ -137,10 +138,7 @@ function TextGenerator() {
 
   return (
     <div className="text-generator">
-      <header className="text-generator-header">
-        <h1>✍️ AI Text Generator</h1>
-        <p>Create amazing content with artificial intelligence | 🔐 Secure & Encrypted</p>
-      </header>
+      <Header title="✍️ AI Text Generator" subtitle="Create amazing content with artificial intelligence | 🔐 Secure & Encrypted" />
 
       <main className="text-generator-main">
         <div className="input-section">

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useApiKey } from '../../hooks/useApiKey';
-import "../App.css"
 
 const ApiKeyManager = ({ onStatusChange }) => {
   const [apiKey, saveApiKey, clearApiKey] = useApiKey();
