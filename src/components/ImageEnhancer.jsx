@@ -3,6 +3,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import { config, saveApiKey, clearStoredApiKey } from '../config.js'
 import ImageContainer from './Ui/ImageContainer'
 import './ImageEnhancer.css'
+import Footer from './Ui/Footer'
 
 function ImageEnhancer() {
   const [originalImage, setOriginalImage] = useState(null)
@@ -479,9 +480,7 @@ function ImageEnhancer() {
         </div>
       </main>
 
-      <footer className="image-enhancer-footer">
-        <p>Built with modern AI technology | 🔐 Encrypted API transmission | 🌐 Secure HTTPS</p>
-      </footer>
+      <Footer />
     </div>
   )
 }

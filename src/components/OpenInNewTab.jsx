@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import './OpenInNewTab.css'
+import Footer from './Ui/Footer'
 
 function OpenInNewTab() {
   const [imageUrl, setImageUrl] = useState('')
@@ -636,9 +637,7 @@ function OpenInNewTab() {
       </div>
 
       <div className="footer">
-        <p className="footer-text">
-          Generated with advanced AI technology • High-quality image ready for download
-        </p>
+       <Footer />
       </div>
     </div>
   )

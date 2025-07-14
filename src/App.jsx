@@ -8,6 +8,7 @@ import TextGenerator from './components/TextGenerator'
 import ImageEnhancer from './components/ImageEnhancer'
 import ImageContainer from './components/Ui/ImageContainer'
 import OpenInNewTab from './components/OpenInNewTab'
+import Footer from './components/Ui/Footer'
 
 function App() {
   const location = useLocation()
@@ -436,9 +437,7 @@ function App() {
             </div>
           </main>
 
-              <footer className="footer">
-                <p>Built with modern AI technology | 🔐 Encrypted API transmission | 🌐 Secure HTTPS</p>
-              </footer>
+             <Footer />
             </>
           )}
         </div>
