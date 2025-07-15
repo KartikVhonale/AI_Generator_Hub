@@ -29,7 +29,7 @@ function App() {
 
   // Check if we're on the OpenInNewTab route
   const isOpenInNewTabRoute = location.pathname === '/open-in-new-tab'
-
+  
   // Check if API key is already saved on component mount
   useEffect(() => {
     if (apiKey) {
@@ -46,11 +46,11 @@ function App() {
   const handleApiKeySave = () => {
     if (manualApiKey.trim()) {
       saveApiKey(manualApiKey.trim())
-      setApiKeySaved(true)
-      setManualApiKey('')
-      setShowApiKeyInput(false)
-      setError('✅ API key saved successfully! You can now use all features.')
-      setTimeout(() => setError(''), 3000)
+        setApiKeySaved(true)
+        setManualApiKey('')
+        setShowApiKeyInput(false)
+        setError('✅ API key saved successfully! You can now use all features.')
+        setTimeout(() => setError(''), 3000)
     } else {
       setError('❌ Please enter a valid API key.')
     }
@@ -58,10 +58,10 @@ function App() {
 
   const handleApiKeyClear = () => {
     clearApiKey()
-    setApiKeySaved(false)
-    setManualApiKey('')
-    setError('✅ API key cleared successfully!')
-    setTimeout(() => setError(''), 3000)
+      setApiKeySaved(false)
+      setManualApiKey('')
+      setError('✅ API key cleared successfully!')
+      setTimeout(() => setError(''), 3000)
   }
 
   const handleImageAction = async (action, result) => {
