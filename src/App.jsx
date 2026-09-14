@@ -11,6 +11,7 @@ import OpenInNewTab from './components/OpenInNewTab'
 import Footer from './components/Ui/Footer'
 import { useApiKey } from './hooks/useApiKey';
 import Header from './components/Ui/Header.jsx';
+import { Analytics } from '@vercel/analytics/react';
 
 function App() {
   const location = useLocation()
@@ -256,6 +257,7 @@ function App() {
   }
 
   return (
+    <>
     <Routes>
       <Route path="/open-in-new-tab" element={<OpenInNewTab />} />
       <Route path="/" element={
@@ -423,6 +425,8 @@ function App() {
         </div>
       } />
     </Routes>
+    <Analytics />
+    </>
   )
 }
 
